@@ -68,12 +68,34 @@ namespace SnekNet.Api
             }
         }
 
+        public async Task<string> PostJSONWithToken(string url, HttpContent content, string token)
+        {
+            using (var client = new HttpClient())
+            {
+                client.Timeout = TimeSpan.FromSeconds(15);
+                client.DefaultRequestHeaders.Connection.Add("close");
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Add("User-Agent", "SnekNet Backend v0.1");
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
+                return await retryPolicy.ExecuteAsync(async () =>
+                {
+                    using (var response = await client.PostAsync(url, content))
+                    {
+                        return await GetResponseBody(response);
+                    }
+                });
+            }
+        }
+
         private async Task<string> GetResponseBody(HttpResponseMessage response)
         {
+            /*
             if (!response.IsSuccessStatusCode)
             {
                 throw new RetryException();
             }
+            */
 
             var body = await response.Content.ReadAsStringAsync();
 

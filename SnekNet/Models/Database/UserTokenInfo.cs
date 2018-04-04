@@ -1,4 +1,5 @@
-﻿using NPoco;
+﻿using System;
+using NPoco;
 
 namespace SnekNet.Models.Database
 {
@@ -7,6 +8,9 @@ namespace SnekNet.Models.Database
     {
         [Column("username")]
         public string Username { get; set; }
+
+        [Column("state")]
+        public Guid State { get; set; }
 
         [Column("accesstoken")]
         public string AccesToken { get; set; }

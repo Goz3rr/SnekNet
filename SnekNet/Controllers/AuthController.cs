@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +11,7 @@ namespace SnekNet.Controllers
 {
     public class AuthController : Controller
     {
-        private const string RedditStateKey = "reddit-state";
+        private const string RedditState = "reddit-state";
 
         public IConfiguration Configuration { get; }
 
@@ -32,7 +31,7 @@ namespace SnekNet.Controllers
             var redditConfig = Configuration.GetSection("Reddit");
             var state = Guid.NewGuid();
 
-            HttpContext.Session.Set(RedditStateKey, state.ToByteArray());
+            HttpContext.Session.Set(RedditState, state.ToByteArray());
             return Redirect($"{RedditApi.BaseUrl}/authorize?client_id={redditConfig["ClientID"]}&response_type=code&state={state}&redirect_uri={redditConfig["RedirectURI"]}&duration=permanent&scope=identity,vote");
         }
 
@@ -43,7 +42,7 @@ namespace SnekNet.Controllers
                 return BadRequest(error);
             }
 
-            if (!HttpContext.Session.TryGetValue(RedditStateKey, out byte[] bytes))
+            if (!HttpContext.Session.TryGetValue(RedditState, out byte[] bytes))
             {
                 return BadRequest();
             }
@@ -63,6 +62,7 @@ namespace SnekNet.Controllers
                 var model = new UserTokenInfo()
                 {
                     Username = user.name,
+                    State = savedState,
                     AccesToken = data.access_token,
                     TokenType = data.token_type,
                     ExpiresUTC = now.ToUnixTimeSeconds() + data.expires_in,

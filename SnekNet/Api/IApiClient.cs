@@ -7,5 +7,6 @@ namespace SnekNet.Api
     {
         Task<string> GetJSON(string url, string auth = null);
         Task<string> PostJSON(string url, HttpContent content, string auth = null);
+        Task<string> PostJSONWithToken(string url, HttpContent content, string token);
     }
 }

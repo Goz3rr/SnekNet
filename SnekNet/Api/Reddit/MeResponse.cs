@@ -2,6 +2,10 @@
 {
     public class MeResponse
     {
+        public string id { get; set; }
+        public string name { get; set; }
+
+        /*
         public bool is_employee { get; set; }
         public bool has_visited_new_profile { get; set; }
         public bool pref_no_profanity { get; set; }
@@ -11,7 +15,7 @@
         public object subreddit { get; set; }
         public bool is_sponsor { get; set; }
         public object gold_expiration { get; set; }
-        public string id { get; set; }
+        
         public object suspension_expiration_utc { get; set; }
         public bool verified { get; set; }
         public Features features { get; set; }
@@ -27,7 +31,7 @@
         public int inbox_count { get; set; }
         public object pref_top_karma_subreddits { get; set; }
         public bool pref_show_snoovatar { get; set; }
-        public string name { get; set; }
+        
         public int pref_clickgadget { get; set; }
         public float created { get; set; }
         public int gold_creddits { get; set; }
@@ -35,6 +39,7 @@
         public bool in_beta { get; set; }
         public int comment_karma { get; set; }
         public bool has_subscribed { get; set; }
+        */
     }
 
     public class Features

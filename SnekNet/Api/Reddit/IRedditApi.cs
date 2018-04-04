@@ -7,5 +7,8 @@ namespace SnekNet.Api.Reddit
         Task<AccessTokenResponse> GetAccesToken(string code);
 
         Task<MeResponse> GetUserData(string token);
+
+        Task<string> UnlockCircle(string token, string id, string key);
+        Task<string> JoinCircle(string token, string id);
     }
 }
