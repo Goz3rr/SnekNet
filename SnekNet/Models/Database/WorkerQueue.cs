@@ -3,7 +3,7 @@ using NPoco;
 
 namespace SnekNet.Models.Database
 {
-    [TableName("reddit.workerqueue")]
+    [TableName("reddit.workerqueue"), PrimaryKey("task_id")]
     public class WorkerQueue
     {
         [Column("task_id")]
@@ -22,6 +22,6 @@ namespace SnekNet.Models.Database
         public string ExecutedBy { get; set; }
 
         [Column("executed_at")]
-        public DateTime ExecutedAt { get; set; }
+        public DateTime? ExecutedAt { get; set; }
     }
 }

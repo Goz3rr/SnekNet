@@ -5,6 +5,7 @@ namespace SnekNet.Api.Reddit
     public interface IRedditApi
     {
         Task<AccessTokenResponse> GetAccesToken(string code);
+        Task<AccessTokenResponse> RefreshAccessToken(string refreshcode);
 
         Task<MeResponse> GetUserData(string token);
 

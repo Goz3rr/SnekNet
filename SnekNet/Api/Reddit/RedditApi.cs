@@ -31,6 +31,15 @@ namespace SnekNet.Api.Reddit
             return JsonConvert.DeserializeObject<AccessTokenResponse>(json);
         }
 
+        public async Task<AccessTokenResponse> RefreshAccessToken(string refreshcode)
+        {
+            var json = await apiClient.PostJSON($"{BaseUrl}/access_token",
+                new StringContent($"grant_type=refresh_token&refresh_token={refreshcode}", Encoding.UTF8, "application/x-www-form-urlencoded"),
+                $"{configuration["Reddit:ClientID"]}:{configuration["Reddit:Secret"]}");
+
+            return JsonConvert.DeserializeObject<AccessTokenResponse>(json);
+        }
+
         public async Task<MeResponse> GetUserData(string token)
         {
             var json = await apiClient.GetJSON($"{OAuthUrl}/me", $"bearer {token}");

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -29,36 +30,71 @@ namespace SnekNet.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Join([FromQuery] string id, [FromQuery] string key, [FromQuery] string password)
+        public async Task<IActionResult> Join([FromQuery] string id, [FromQuery] string key, [FromQuery] string password, [FromQuery] uint limit = 0)
         {
-            if(password != "BigSnekBigFun")
+            if (password != "BigSnekBigFun")
             {
                 return Forbid();
             }
+
+            // admin/join?password=BigSnekBigFun&id=89g2zn&key=ilikecirclesandsneks&limit=10
 
             //http://localhost:60404/admin/join?id=89g2zn&key=ilikecirclesandsneks&token=qbWmnR0YCPMu_g9di5g22VmxMB4
             //["{\"ilikecirclesandsneks\": true}","{\"is_betrayed\": false, \"total_count\": 3, \"direction\": 1, \"circle_num_outside\": 6, \"thing_fullname\": \"t3_89g2zn\"}"]
 
             using (var db = dbFactory.GetDatabase())
             {
-                // Search the DB for tokens
-                var users = await db.FetchAsync<UserTokenInfo>("SELECT * FROM reddit.tokens WHERE expiresutc > extract(epoch from now() at time zone 'utc');");
+                var sql = "SELECT * FROM reddit.tokens WHERE expiresutc > extract(epoch from now() at time zone 'utc')";
+                if (limit > 0)
+                {
+                    sql += $" LIMIT {limit}";
+                }
+
+                var users = await db.FetchAsync<UserTokenInfo>(sql);
                 var tasks = new List<Task<string[]>>();
 
                 foreach (var user in users)
                 {
-                    tasks.Add(Task.Run(async () =>
+                    var task = new WorkerQueue()
                     {
-                        return new string[] {
-                            await redditApi.UnlockCircle(user.AccesToken, id, key),
-                            await redditApi.JoinCircle(user.AccesToken, id)
-                        };
-                    }));
+                        //TaskId = 0,
+                        TargetId = id,
+                        TargetKey = key,
+                        Token = user.AccesToken
+                    };
+
+                    await db.InsertAsync(task);
                 }
 
                 await Task.WhenAll(tasks);
                 return Ok(tasks.Select(t => t.Result));
             }
+        }
+
+        public async Task<IActionResult> UpdateTokens([FromQuery] string password)
+        {
+            if (password != "BigSnekBigFun")
+            {
+                return Forbid();
+            }
+
+            using (var db = dbFactory.GetDatabase())
+            {
+                var users = await db.FetchAsync<UserTokenInfo>("SELECT * FROM reddit.tokens WHERE expiresutc < (extract(epoch from now() at time zone 'utc') - 60)");
+
+                foreach (var user in users)
+                {
+                    var now = DateTimeOffset.UtcNow;
+                    var response = await redditApi.RefreshAccessToken(user.RefreshToken);
+
+                    user.AccesToken = response.access_token;
+                    user.ExpiresUTC = now.ToUnixTimeSeconds() + response.expires_in;
+
+                    await db.UpdateAsync(user);
+                }
+            }
+
+            return Ok();
         }
     }
 }

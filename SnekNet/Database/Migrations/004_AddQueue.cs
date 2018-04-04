@@ -10,7 +10,7 @@ namespace SnekNet.Database.Migrations
         {
             Execute(@"
                 CREATE TABLE reddit.workerqueue (
-                    task_id INTEGER NOT NULL,
+                    task_id SERIAL PRIMARY KEY,
                     token TEXT NOT NULL,
                     target_id TEXT NOT NULL,
                     target_key TEXT NOT NULL,
