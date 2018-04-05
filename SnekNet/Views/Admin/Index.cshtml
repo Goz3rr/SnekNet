@@ -1,0 +1,52 @@
+﻿@model AdminViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Sneknet Dashboard";
+}
+
+<h2>Sneknet Dashboard</h2>
+<ul class="nav nav-tabs">
+    <li class="active"><a data-toggle="tab" href="#home">Home</a></li>
+    <li><a data-toggle="tab" href="#users">Users</a></li>
+    <li><a data-toggle="tab" href="#requests">Requests</a></li>
+    <li><a data-toggle="tab" href="#bans">Bans</a></li>
+</ul>
+<div class="tab-content">
+    <div id="home" class="tab-pane fade in active">
+        <h3>henlo this is the admin panel yes</h3>
+
+        <form asp-controller="Admin" asp-action="AddAdmin" method="post">
+            <input type="text" name="username" />
+            <input type="submit" />
+        </form>
+    </div>
+    <div id="users" class="tab-pane fade">
+        <h3>Users (@Model.Users.Count() total)</h3>
+
+        <table class="table">
+            <tr>
+                <th>Username</th>
+                <th>Active</th>
+                <th>Token Expiry</th>
+                <th>Action</th>
+            </tr>
+            @foreach (var user in Model.Users)
+            {
+                <tr>
+                    <td><a href="https://reddit.com/u/@user.Username">@user.Username</a></td>
+                    <td>@(user.Active ? "yes" : "no")</td>
+                    <td>@user.TokenExpiryUTC</td>
+                    <td>
+                        <a href="#">Ban</a>
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+    <div id="requests" class="tab-pane fade">
+        <h3>Requests</h3>
+    </div>
+    <div id="bans" class="tab-pane fade">
+        <h3>Bans</h3>
+    </div>
+</div>

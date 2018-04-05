@@ -28,7 +28,7 @@ namespace SnekNet.Controllers
         {
             if (secret != "SssuperSssecretThing")
             {
-                return Forbid();
+                return StatusCode(403);
             }
 
             if (amount < 1) amount = 1;
@@ -37,13 +37,13 @@ namespace SnekNet.Controllers
             using (var db = dbFactory.GetDatabase())
             {
                 //var tasks = new List<WorkerTask>();
-                var results = await db.FetchAsync<WorkerQueue>($"SELECT * FROM reddit.workerqueue WHERE executed_by IS NULL ORDER BY task_id ASC LIMIT {amount}");
+                var results = await db.FetchAsync<WorkerQueue>($"SELECT q.*, t.accesstoken FROM reddit.workerqueue as q, reddit.tokens as t WHERE q.executed_by IS NULL and q.username = t.username ORDER BY task_id ASC LIMIT {amount}");
 
                 var tasks = results.Select(x => new WorkerTask()
                 {
                     id = x.TargetId,
                     key = x.TargetKey,
-                    token = x.Token
+                    token = x.TokenResult
                 });
 
                 foreach(var result in results)

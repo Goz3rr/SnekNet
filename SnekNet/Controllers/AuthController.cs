@@ -11,7 +11,7 @@ namespace SnekNet.Controllers
 {
     public class AuthController : Controller
     {
-        private const string RedditState = "reddit-state";
+        public const string RedditState = "reddit-state";
 
         public IConfiguration Configuration { get; }
 
@@ -65,7 +65,7 @@ namespace SnekNet.Controllers
                     State = savedState,
                     AccesToken = data.access_token,
                     TokenType = data.token_type,
-                    ExpiresUTC = now.ToUnixTimeSeconds() + data.expires_in,
+                    ExpiresUTC = now.ToUnixTimeSeconds() + data.expires_in.Value,
                     RefreshToken = data.refresh_token,
                     Scope = data.scope
                 };

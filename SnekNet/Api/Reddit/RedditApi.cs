@@ -47,18 +47,18 @@ namespace SnekNet.Api.Reddit
             return JsonConvert.DeserializeObject<MeResponse>(json);
         }
 
-        public async Task<string> UnlockCircle(string token, string id, string key)
+        public Task<string> UnlockCircle(string token, string id, string key)
         {
-            return await apiClient.PostJSONWithToken($"https://oauth.reddit.com/api/guess_voting_key.json", new FormUrlEncodedContent(new[] {
+            return apiClient.PostJSONWithToken($"https://oauth.reddit.com/api/guess_voting_key.json", new FormUrlEncodedContent(new[] {
                 new KeyValuePair<string, string>("id", $"t3_{id}"),
                 new KeyValuePair<string, string>("vote_key", key),
                 new KeyValuePair<string, string>("raw_json", "1")
             }), token);
         }
 
-        public async Task<string> JoinCircle(string token, string id)
+        public Task<string> JoinCircle(string token, string id)
         {
-            return await apiClient.PostJSONWithToken($"https://oauth.reddit.com/api/circle_vote.json?dir=1&id=t3_{id}", new FormUrlEncodedContent(new[] {
+            return apiClient.PostJSONWithToken($"https://oauth.reddit.com/api/circle_vote.json?dir=1&id=t3_{id}", new FormUrlEncodedContent(new[] {
                 new KeyValuePair<string, string>("id", $"t3_{id}"),
                 new KeyValuePair<string, string>("dir", "1")
             }), token);

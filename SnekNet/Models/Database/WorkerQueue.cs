@@ -9,8 +9,11 @@ namespace SnekNet.Models.Database
         [Column("task_id")]
         public int TaskId { get; set; }
 
-        [Column("token")]
-        public string Token { get; set; }
+        [Column("username")]
+        public string Username { get; set; }
+
+        [ResultColumn("accesstoken")]
+        public string TokenResult { get; set; }
 
         [Column("target_id")]
         public string TargetId { get; set; }
