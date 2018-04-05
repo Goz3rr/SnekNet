@@ -4,6 +4,7 @@
     {
         public string id { get; set; }
         public string name { get; set; }
+        public long created_utc { get; set; }
 
         /*
         public bool is_employee { get; set; }
@@ -33,9 +34,9 @@
         public bool pref_show_snoovatar { get; set; }
         
         public int pref_clickgadget { get; set; }
-        public float created { get; set; }
+        public long created { get; set; }
         public int gold_creddits { get; set; }
-        public float created_utc { get; set; }
+        public long created_utc { get; set; }
         public bool in_beta { get; set; }
         public int comment_karma { get; set; }
         public bool has_subscribed { get; set; }

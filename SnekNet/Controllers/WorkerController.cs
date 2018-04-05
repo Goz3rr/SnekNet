@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -36,24 +35,55 @@ namespace SnekNet.Controllers
 
             using (var db = dbFactory.GetDatabase())
             {
-                //var tasks = new List<WorkerTask>();
-                var results = await db.FetchAsync<WorkerQueue>($"SELECT q.*, t.accesstoken FROM reddit.workerqueue as q, reddit.tokens as t WHERE q.executed_by IS NULL and q.username = t.username ORDER BY task_id ASC LIMIT {amount}");
+                var results = await db.FetchAsync<WorkerTask>($"SELECT ordr.circle_id, ordr.circle_key, token.accesstoken, task.* FROM reddit.workertasks as task, reddit.workerorders as ordr, reddit.tokens as token WHERE task.executed_by IS NULL AND task.order_id = ordr.id AND task.username = token.username ORDER BY task.id ASC LIMIT {amount}");
 
-                var tasks = results.Select(x => new WorkerTask()
+                var response = results.Select(x => new WorkerTaskResponse()
                 {
-                    id = x.TargetId,
-                    key = x.TargetKey,
+                    id = x.Id,
+                    circle_id = x.CircleId,
+                    circle_key = x.CircleKey,
                     token = x.TokenResult
                 });
 
-                foreach(var result in results)
+                foreach (var result in results)
                 {
                     result.ExecutedAt = DateTime.UtcNow;
                     result.ExecutedBy = HttpContext.Connection.RemoteIpAddress.ToString();
                     await db.UpdateAsync(result);
                 }
 
-                return Ok(tasks);
+                return Ok(response);
+            }
+        }
+
+        [HttpGet("Requeue")]
+        public async Task<IActionResult> Requeue([FromQuery] string secret, [FromQuery] int? id)
+        {
+            if (secret != "SssuperSssecretThing")
+            {
+                return StatusCode(403);
+            }
+
+            if (id == null)
+            {
+                return BadRequest();
+            }
+
+            using (var db = dbFactory.GetDatabase())
+            {
+                var task = await db.FirstOrDefaultAsync<WorkerTask>($"SELECT * FROM reddit.workertasks WHERE id = {id} AND executed_by = @0", HttpContext.Connection.RemoteIpAddress.ToString());
+                if (task == null)
+                {
+                    return BadRequest();
+                }
+
+                await db.InsertAsync(new WorkerTask()
+                {
+                    OrderId = task.OrderId,
+                    Username = task.Username
+                });
+
+                return Ok();
             }
         }
     }

@@ -3,11 +3,14 @@ using NPoco;
 
 namespace SnekNet.Models.Database
 {
-    [TableName("reddit.workerqueue"), PrimaryKey("task_id")]
-    public class WorkerQueue
+    [TableName("reddit.workertasks"), PrimaryKey("id")]
+    public class WorkerTask
     {
-        [Column("task_id")]
-        public int TaskId { get; set; }
+        [Column("id")]
+        public int Id { get; set; }
+
+        [Column("order_id")]
+        public int OrderId { get; set; }
 
         [Column("username")]
         public string Username { get; set; }
@@ -15,11 +18,11 @@ namespace SnekNet.Models.Database
         [ResultColumn("accesstoken")]
         public string TokenResult { get; set; }
 
-        [Column("target_id")]
-        public string TargetId { get; set; }
+        [ResultColumn("circle_id")]
+        public string CircleId { get; set; }
 
-        [Column("target_key")]
-        public string TargetKey { get; set; }
+        [ResultColumn("circle_key")]
+        public string CircleKey { get; set; }
 
         [Column("executed_by")]
         public string ExecutedBy { get; set; }

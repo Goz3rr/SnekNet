@@ -57,6 +57,12 @@ namespace SnekNet.Controllers
             var data = await redditApi.GetAccesToken(code);
             var user = await redditApi.GetUserData(data.access_token);
 
+            // april 1st 2018
+            if (user.created_utc > 1522540800)
+            {
+                return Ok("your account is too new to participate");
+            }
+
             using (var db = dbFactory.GetDatabase())
             {
                 var model = new UserTokenInfo()

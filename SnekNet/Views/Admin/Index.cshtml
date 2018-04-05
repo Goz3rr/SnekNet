@@ -8,20 +8,33 @@
 <ul class="nav nav-tabs">
     <li class="active"><a data-toggle="tab" href="#home">Home</a></li>
     <li><a data-toggle="tab" href="#users">Users</a></li>
-    <li><a data-toggle="tab" href="#requests">Requests</a></li>
+    <li><a data-toggle="tab" href="#orders">Orders</a></li>
     <li><a data-toggle="tab" href="#bans">Bans</a></li>
 </ul>
 <div class="tab-content">
     <div id="home" class="tab-pane fade in active">
         <h3>henlo this is the admin panel yes</h3>
 
+        <h5>Add new admin:</h5>
         <form asp-controller="Admin" asp-action="AddAdmin" method="post">
             <input type="text" name="username" />
             <input type="submit" />
         </form>
+
+        <h4>Admins:</h4>
+        <ul>
+            @foreach (var name in Model.Admins)
+            {
+                <li>
+                    <a href="https://reddit.com/u/@name">@name</a>
+                </li>
+            }
+        </ul>
     </div>
     <div id="users" class="tab-pane fade">
         <h3>Users (@Model.Users.Count() total)</h3>
+
+        <a asp-controller="Admin" asp-action="UpdateTokens">update tokens</a>
 
         <table class="table">
             <tr>
@@ -35,7 +48,7 @@
                 <tr>
                     <td><a href="https://reddit.com/u/@user.Username">@user.Username</a></td>
                     <td>@(user.Active ? "yes" : "no")</td>
-                    <td>@user.TokenExpiryUTC</td>
+                    <td>@(user.Active ? user.TokenExpiryUTC : -1)</td>
                     <td>
                         <a href="#">Ban</a>
                     </td>
@@ -43,8 +56,23 @@
             }
         </table>
     </div>
-    <div id="requests" class="tab-pane fade">
-        <h3>Requests</h3>
+    <div id="orders" class="tab-pane fade">
+        <h3>Orders</h3>
+
+        <form asp-controller="Admin" asp-action="AddOrder" method="post">
+            ID: <input type="text" name="circle_id" />
+            Key: <input type="text" name="circle_key" />
+            Limit <input type="number" name="limit" value="0" min="0" />
+            <input type="submit" />
+        </form>
+
+        <table class="table">
+            <tr>
+                <th>Circle</th>
+                <th>Joins queued</th>
+                <th>Joins completed</th>
+            </tr>
+        </table>
     </div>
     <div id="bans" class="tab-pane fade">
         <h3>Bans</h3>

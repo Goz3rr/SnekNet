@@ -45,7 +45,7 @@ namespace SnekNet.Controllers
         }
 
         // GET: /<controller>/
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             if (!IsAdmin(out _))
             {
@@ -54,19 +54,22 @@ namespace SnekNet.Controllers
 
             using (var db = dbFactory.GetDatabase())
             {
-                var viewModel = new AdminViewModel();
-
-                viewModel.Users = db.Fetch<UserTokenInfo>("SELECT * FROM reddit.tokens").Select(t => new UserData()
+                var viewModel = new AdminViewModel
                 {
-                    Username = t.Username,
-                    Active = t.AccesToken != null,
-                    TokenExpiryUTC = t.ExpiresUTC
-                }).ToList();
+                    Admins = await db.FetchAsync<string>("SELECT username FROM reddit.admins"),
+                    Users = (await db.FetchAsync<UserTokenInfo>("SELECT * FROM reddit.tokens")).Select(t => new UserData()
+                    {
+                        Username = t.Username,
+                        Active = t.AccesToken != null,
+                        TokenExpiryUTC = t.ExpiresUTC
+                    }).ToList()
+                };
 
                 return View(viewModel);
             }
         }
 
+        [HttpPost]
         public async Task<IActionResult> AddAdmin([FromForm] string username)
         {
             if (!IsAdmin(out string adminName))
@@ -76,7 +79,7 @@ namespace SnekNet.Controllers
 
             using (var db = dbFactory.GetDatabase())
             {
-                if(await db.FirstAsync<int>("SELECT COUNT(*) FROM reddit.tokens WHERE username = @0 ", username) == 0)
+                if (await db.FirstAsync<int>("SELECT COUNT(*) FROM reddit.tokens WHERE username = @0 ", username) == 0)
                 {
                     return Ok("user does not exist");
                 }
@@ -91,20 +94,25 @@ namespace SnekNet.Controllers
             return Ok("added");
         }
 
-        public async Task<IActionResult> Join([FromQuery] string id, [FromQuery] string key, [FromQuery] string password, [FromQuery] uint limit = 0)
+        [HttpPost]
+        public async Task<IActionResult> AddOrder([FromForm] string circle_id, [FromForm] string circle_key, [FromForm] uint limit = 0)
         {
-            if (password != "BigSnekBigFun")
+            if (!IsAdmin(out string adminName))
             {
                 return StatusCode(403);
             }
 
-            // admin/join?password=BigSnekBigFun&id=89g2zn&key=ilikecirclesandsneks&limit=10
-
-            //http://localhost:60404/admin/join?id=89g2zn&key=ilikecirclesandsneks&token=qbWmnR0YCPMu_g9di5g22VmxMB4
-            //["{\"ilikecirclesandsneks\": true}","{\"is_betrayed\": false, \"total_count\": 3, \"direction\": 1, \"circle_num_outside\": 6, \"thing_fullname\": \"t3_89g2zn\"}"]
-
             using (var db = dbFactory.GetDatabase())
             {
+                var order = new WorkerOrder()
+                {
+                    CircleID = circle_id,
+                    CircleKey = circle_key,
+                    StartedBy = adminName
+                };
+
+                await db.InsertAsync(order);
+
                 var sql = "SELECT * FROM reddit.tokens WHERE expiresutc > extract(epoch from now() at time zone 'utc') AND accesstoken IS NOT NULL ORDER BY RANDOM()";
                 if (limit > 0)
                 {
@@ -112,29 +120,22 @@ namespace SnekNet.Controllers
                 }
 
                 var users = await db.FetchAsync<UserTokenInfo>(sql);
-                var tasks = new List<Task<string[]>>();
-
                 foreach (var user in users)
                 {
-                    var task = new WorkerQueue()
+                    await db.InsertAsync(new WorkerTask()
                     {
-                        //TaskId = 0,
-                        TargetId = id,
-                        TargetKey = key,
+                        OrderId = order.Id,
                         Username = user.Username
-                    };
-
-                    await db.InsertAsync(task);
+                    });
                 }
 
-                await Task.WhenAll(tasks);
-                return Ok(tasks.Select(t => t.Result));
+                return Ok($"queued up {users.Count} tasks");
             }
         }
 
-        public async Task<IActionResult> UpdateTokens([FromQuery] string password)
+        public async Task<IActionResult> UpdateTokens()
         {
-            if (password != "BigSnekBigFun")
+            if (!IsAdmin(out string adminName))
             {
                 return StatusCode(403);
             }
