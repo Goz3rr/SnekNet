@@ -7,13 +7,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using NPoco;
 using SnekNet.Api.Reddit;
+using SnekNet.Common.Models.Database;
 using SnekNet.Models;
-using SnekNet.Models.Database;
 
 namespace SnekNet.Controllers
 {
     public class AdminController : Controller
     {
+        //private static readonly RetryPolicy retryPolicy = new RetryPolicy<ApiErrorDetectionStrategy>(3, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2));
+
         public IConfiguration Configuration { get; }
 
         private readonly IRedditApi redditApi;
@@ -57,11 +59,16 @@ namespace SnekNet.Controllers
                 var viewModel = new AdminViewModel
                 {
                     Admins = await db.FetchAsync<string>("SELECT username FROM reddit.admins"),
-                    Users = (await db.FetchAsync<UserTokenInfo>("SELECT * FROM reddit.tokens")).Select(t => new UserData()
+                    Users = (await db.FetchAsync<UserTokenInfo>("SELECT * FROM reddit.tokens ORDER BY accesstoken IS NOT NULL DESC, username ASC")).Select(t => new UserData()
                     {
                         Username = t.Username,
                         Active = t.AccesToken != null,
                         TokenExpiryUTC = t.ExpiresUTC
+                    }).ToList(),
+                    Orders = (await db.FetchAsync<WorkerOrder>("SELECT * FROM reddit.workerorders ORDER BY id ASC")).Select(o => new Order()
+                    {
+                        Id = o.CircleID,
+                        Key = o.CircleKey
                     }).ToList()
                 };
 
@@ -102,6 +109,17 @@ namespace SnekNet.Controllers
                 return StatusCode(403);
             }
 
+            var circleData = await redditApi.GetCircleData(circle_id);
+            if (circleData.error != null)
+            {
+                return BadRequest("circle does not exist");
+            }
+
+            if (circleData.data.children[0].data.is_betrayed)
+            {
+                return BadRequest("circle is already betrayed");
+            }
+
             using (var db = dbFactory.GetDatabase())
             {
                 var order = new WorkerOrder()
@@ -120,6 +138,50 @@ namespace SnekNet.Controllers
                 }
 
                 var users = await db.FetchAsync<UserTokenInfo>(sql);
+
+                /*
+                var results = new List<string>();
+
+                using (var client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(15);
+                    client.DefaultRequestHeaders.Connection.Add("close");
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    client.DefaultRequestHeaders.Add("User-Agent", "SnekNet Backend v0.1");
+
+                    int i = 0;
+                    const int maxWorkers = 100;
+
+                    await users.ParallelForEachAsync(async user =>
+                    {
+                        try
+                        {
+                            await retryPolicy.ExecuteAsync(async () =>
+                            {
+                                if (i > maxWorkers) i = 0;
+                                var id = i++;
+
+                                using (var response = await client.GetAsync($"{Configuration["Worker:FunctionURL"]}/join-{id}?accessToken={user.AccesToken}&id=t3_{circle_id}&key={circle_key}"))
+                                {
+                                    results.Add(await response.Content.ReadAsStringAsync());
+
+                                    if (!response.IsSuccessStatusCode)
+                                    {
+                                        throw new RetryException();
+                                    }
+                                }
+                            });
+                        }
+                        catch (RetryException)
+                        {
+
+                        }
+                    }, maxDegreeOfParalellism: 64);
+                }
+
+                return Ok(results);
+                */
+
                 foreach (var user in users)
                 {
                     await db.InsertAsync(new WorkerTask()
@@ -168,7 +230,7 @@ namespace SnekNet.Controllers
                     {
                         await dbParallel.UpdateAsync(user);
                     }
-                }, maxDegreeOfParalellism: 8);
+                }, maxDegreeOfParalellism: 16);
             }
 
             return Ok(new

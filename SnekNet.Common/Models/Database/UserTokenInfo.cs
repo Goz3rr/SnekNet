@@ -1,7 +1,7 @@
 ﻿using System;
 using NPoco;
 
-namespace SnekNet.Models.Database
+namespace SnekNet.Common.Models.Database
 {
     [TableName("reddit.tokens"), PrimaryKey("username", AutoIncrement = false)]
     public class UserTokenInfo

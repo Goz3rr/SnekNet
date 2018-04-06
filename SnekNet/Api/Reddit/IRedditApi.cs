@@ -8,6 +8,7 @@ namespace SnekNet.Api.Reddit
         Task<AccessTokenResponse> RefreshAccessToken(string refreshcode);
 
         Task<MeResponse> GetUserData(string token);
+        Task<CircleResponse> GetCircleData(string id);
 
         Task<string> UnlockCircle(string token, string id, string key);
         Task<string> JoinCircle(string token, string id);

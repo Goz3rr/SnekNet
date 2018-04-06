@@ -47,6 +47,13 @@ namespace SnekNet.Api.Reddit
             return JsonConvert.DeserializeObject<MeResponse>(json);
         }
 
+        public async Task<CircleResponse> GetCircleData(string id)
+        {
+            var json = await apiClient.GetJSON($"https://www.reddit.com/r/CircleofTrust/comments/{id}.json");
+
+            return JsonConvert.DeserializeObject<CircleResponse[]>(json)[0];
+        }
+
         public Task<string> UnlockCircle(string token, string id, string key)
         {
             return apiClient.PostJSONWithToken($"https://oauth.reddit.com/api/guess_voting_key.json", new FormUrlEncodedContent(new[] {

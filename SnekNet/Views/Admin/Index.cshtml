@@ -72,6 +72,14 @@
                 <th>Joins queued</th>
                 <th>Joins completed</th>
             </tr>
+            @foreach (var order in Model.Orders)
+            {
+                <tr>
+                    <td><a href="https://reddit.com/@order.Id">@order.Id</a></td>
+                    <td>-1</td>
+                    <td>-1</td>
+                </tr>
+            }
         </table>
     </div>
     <div id="bans" class="tab-pane fade">

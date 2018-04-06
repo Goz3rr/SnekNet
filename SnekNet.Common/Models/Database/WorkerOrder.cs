@@ -1,6 +1,6 @@
 ﻿using NPoco;
 
-namespace SnekNet.Models.Database
+namespace SnekNet.Common.Models.Database
 {
     [TableName("reddit.workerorders"), PrimaryKey("id")]
     public class WorkerOrder

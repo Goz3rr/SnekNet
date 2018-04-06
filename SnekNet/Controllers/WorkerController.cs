@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using NPoco;
+using SnekNet.Common.Models.Database;
 using SnekNet.Models;
-using SnekNet.Models.Database;
 
 namespace SnekNet.Controllers
 {
@@ -25,7 +25,7 @@ namespace SnekNet.Controllers
         [HttpGet("Task")]
         public async Task<IActionResult> Task([FromQuery] string secret, [FromQuery] int amount = 1)
         {
-            if (secret != "SssuperSssecretThing")
+            if (secret != Configuration["Worker:Secret"])
             {
                 return StatusCode(403);
             }
@@ -59,7 +59,7 @@ namespace SnekNet.Controllers
         [HttpGet("Requeue")]
         public async Task<IActionResult> Requeue([FromQuery] string secret, [FromQuery] int? id)
         {
-            if (secret != "SssuperSssecretThing")
+            if (secret != Configuration["Worker:Secret"])
             {
                 return StatusCode(403);
             }

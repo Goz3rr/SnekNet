@@ -1,7 +1,7 @@
 ﻿using System;
 using NPoco;
 
-namespace SnekNet.Models.Database
+namespace SnekNet.Common.Models.Database
 {
     [TableName("reddit.workertasks"), PrimaryKey("id")]
     public class WorkerTask

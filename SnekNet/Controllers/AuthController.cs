@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using NPoco;
 using SnekNet.Api.Reddit;
-using SnekNet.Models.Database;
+using SnekNet.Common.Models.Database;
 
 namespace SnekNet.Controllers
 {

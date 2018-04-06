@@ -1,6 +1,6 @@
 ﻿using NPoco;
 
-namespace SnekNet.Models.Database
+namespace SnekNet.Common.Models.Database
 {
     [TableName("admins"), PrimaryKey("username", AutoIncrement = false)]
     public class AdminUser

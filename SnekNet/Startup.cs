@@ -37,10 +37,7 @@ namespace SnekNet
                 .AddJsonOptions(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver());
 
             services.AddDistributedMemoryCache();
-            services.AddSession(options =>
-            {
-                options.IdleTimeout = TimeSpan.FromDays(1);
-            });
+            services.AddSession(options => options.IdleTimeout = TimeSpan.FromDays(1));
 
             services.AddSingleton<IApiClient, HttpApiClient>();
             services.AddSingleton<IRedditApi, RedditApi>();
